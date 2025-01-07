@@ -44,7 +44,7 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
 
   // カードが選択された時の処理
   const handleSelectProduct = (product: Product) => {
-    console.log(product);
+    // 上と同じだが常に表示するのでtrue
     setIsFormActive(true);
   }
 
