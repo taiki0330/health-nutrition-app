@@ -25,6 +25,9 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
   // formの開閉のためにbooleanで管理
   const [isFormActive, setIsFormActive] = useState(false);
 
+  // 選択したproductカードをstateで管理
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
   // その日のデータを取得
   const dailyProducts = monthlyProducts.filter((product) => {
     return product.date === currentDay;
@@ -35,17 +38,23 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
   // ×ボタンでフォームを閉じる処理
   const closeForm = () => {
     setIsFormActive(!isFormActive);
+    setSelectedProduct(null);
   }
 
-  // フォームの開閉処理
+  // フォームの開閉処理(内訳追加ボタンを押したとき)
   const handleTransactionForm = () => {
-    setIsFormActive(!isFormActive);
+    if(selectedProduct) {
+      setSelectedProduct(null);
+    } else {
+      setIsFormActive(!isFormActive);
+    }
   }
 
   // カードが選択された時の処理
   const handleSelectProduct = (product: Product) => {
     // 上と同じだが常に表示するのでtrue
     setIsFormActive(true);
+    setSelectedProduct(product);
   }
 
 
@@ -82,6 +91,7 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
           onCloseForm={closeForm}
           currentDay={currentDay}
           onSaveProduct={onSaveProduct}
+          selectedProduct={selectedProduct}
         />
     </Box>
 

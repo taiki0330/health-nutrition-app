@@ -26,8 +26,7 @@ function App() {
   // アプリではすべての月のデータから今月分だけを取り出すので、stateで管理する
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // 選択したproductカードをstateで管理
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
 
   // データは初回レンダリング時一回のみ取得したいのでuseEffect()を利用する
   useEffect(() => {

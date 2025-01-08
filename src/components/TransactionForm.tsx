@@ -19,9 +19,10 @@ import LocalPizzaIcon from '@mui/icons-material/LocalPizza';
 import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Category } from "@mui/icons-material";
-import { ProductCategory } from "../types";
+import { Product, ProductCategory } from "../types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Schema, transactionSchema } from "../validations/schema";
+import { set } from "date-fns";
 
 
 // 受け取るプロップスを型定義
@@ -30,6 +31,7 @@ interface TransactionFormProps {
   onCloseForm: () => void, // Home.tsxから受け取り  
   currentDay: string, // Home.tsxから受け取り
   onSaveProduct: (product: Schema) => Promise<void>, // App.tsx->Home.tsxから受け取り
+  selectedProduct: Product | null, // Home.tsxから受け取り
 }
 
 // カテゴリーの型定義(下のカテゴリー配列で指定する)
@@ -40,7 +42,7 @@ interface CategoryType {
 
 
 // コンポーネント
-const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct}: TransactionFormProps) => {
+const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, selectedProduct}: TransactionFormProps) => {
   const formWidth = 320;
 
   // カテゴリーを配列で定義
@@ -95,6 +97,37 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct}:
     })
   }
 
+  // 選択したカードをフォームに反映させる。購入品が選択させたタイミングで処理を実装したいので、useEffectを使う
+  useEffect(() => {
+    if(selectedProduct) {
+      setValue("date", selectedProduct.date);
+      setValue("category", selectedProduct.category);
+      setValue("content", selectedProduct.content);
+      setValue("energy", selectedProduct.energy);
+      setValue("protein", selectedProduct.protein);
+      setValue("fat", selectedProduct.fat);
+      setValue("carbo", selectedProduct.carbo);
+      setValue("salt", selectedProduct.salt);
+      setValue("calcium", selectedProduct.calcium);
+    } else {
+      reset({
+        date: currentDay,
+        amount: 0,
+        category: "",
+        content: "",
+        energy: 0,
+        protein: 0,
+        fat: 0,
+        carbo: 0,
+        salt: 0,
+        calcium: 0,});
+    }
+  }, [selectedProduct]);
+
+  // カードを削除する処理
+  const handleDelete = () => {
+    onDeleteProduct(selectedProduct.id);
+  }
 
   return (
     <Box
@@ -114,6 +147,8 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct}:
         p: 2, // 内部の余白
         boxSizing: "border-box", // ボーダーとパディングをwidthに含める
         boxShadow: "0px 0px 15px -5px #777777",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* 入力エリアヘッダー */}
@@ -131,7 +166,7 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct}:
       </Box>
 
       {/* フォーム要素 */}
-      <Box component={"form"} onSubmit={handleSubmit(onSubmit)}>
+      <Box component={"form"} onSubmit={handleSubmit(onSubmit)} sx={{ flex: 1, overflowY: "auto", pb: 8 }}>
         <Stack spacing={2}>
 
           {/* 日付 */}
@@ -328,6 +363,12 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct}:
           <Button type="submit" variant="contained" color={"primary"} fullWidth>
             保存
           </Button>
+          {/* 削除ボタン（カードが選択されている場合のみ表示） */}
+          {selectedProduct && (
+          <Button onClick={handleDelete} variant="outlined" color={"secondary"} fullWidth>
+            削除
+          </Button>
+          )}
         </Stack>
       </Box>
     </Box>
