@@ -37,3 +37,12 @@ export interface CalendarContent {
   totalSalt: number,
   totalCalcium: number,
 }
+
+// ユーザーのデータの型定義
+export interface User {
+  id: string,
+  name: string,
+  age: number,
+  weight: number,
+  height: number,
+}

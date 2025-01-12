@@ -32,6 +32,9 @@ interface TransactionFormProps {
   currentDay: string, // Home.tsxから受け取り
   onSaveProduct: (product: Schema) => Promise<void>, // App.tsx->Home.tsxから受け取り
   selectedProduct: Product | null, // Home.tsxから受け取り
+  onDeleteProduct: (productId: string) => Promise<void>, // App.tsx->Home.tsxから受け取り
+  setSelectedProduct: React.Dispatch<React.SetStateAction<Product | null>>, // Home.tsxから受け取り
+  onUpdateProduct: (product: Schema, productId: string) => Promise<void>, // App.tsx->Home.tsxから受け取り
 }
 
 // カテゴリーの型定義(下のカテゴリー配列で指定する)
@@ -42,7 +45,7 @@ interface CategoryType {
 
 
 // コンポーネント
-const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, selectedProduct}: TransactionFormProps) => {
+const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, selectedProduct, onDeleteProduct, setSelectedProduct, onUpdateProduct}: TransactionFormProps) => {
   const formWidth = 320;
 
   // カテゴリーを配列で定義
@@ -79,8 +82,28 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, 
 
   // 送信処理を定義
   const onSubmit: SubmitHandler<Schema> = (data) => {
-    console.log(data);
-    onSaveProduct(data);
+    // console.log(data);
+
+    // 更新処理はカードが選択されているときに実行。逆に選択されていないときは新規登録となる
+    if(selectedProduct) {
+      // App.tsxで定義したhandleUpdateProductを持ってきている。更新が実行された後にフォームをリセットしたいのでthenメソッドを使う
+      onUpdateProduct(data, selectedProduct.id)
+      .then(() => {
+        setSelectedProduct(null);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+    } else {
+      // 新規登録している。App.tsxで定義したhandelSaveProductを持ってきている
+      onSaveProduct(data)
+      .then(() => {
+        setSelectedProduct(null);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+    }
 
     // 送信後にフォーム欄をリセットする(指定した日付をそのまま選択した日付にする)
     reset({ 
@@ -101,6 +124,7 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, 
   useEffect(() => {
     if(selectedProduct) {
       setValue("date", selectedProduct.date);
+      setValue("amount", selectedProduct.amount);
       setValue("category", selectedProduct.category);
       setValue("content", selectedProduct.content);
       setValue("energy", selectedProduct.energy);
@@ -126,7 +150,12 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, 
 
   // カードを削除する処理
   const handleDelete = () => {
-    onDeleteProduct(selectedProduct.id);
+    if (selectedProduct) {
+      // App.tsxで定義したhandleDeleteProductを持ってきている
+      onDeleteProduct(selectedProduct.id);
+      // 削除するとフォームの中身を消す
+      setSelectedProduct(null);
+    }
   }
 
   return (
@@ -361,7 +390,7 @@ const TransactionForm = ({isFormActive, onCloseForm, currentDay, onSaveProduct, 
 
           {/* 保存ボタン */}
           <Button type="submit" variant="contained" color={"primary"} fullWidth>
-            保存
+            {selectedProduct ? "更新" : "保存"}
           </Button>
           {/* 削除ボタン（カードが選択されている場合のみ表示） */}
           {selectedProduct && (

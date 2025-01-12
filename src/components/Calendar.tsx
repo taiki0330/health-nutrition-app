@@ -35,7 +35,7 @@ const Calendar = ({ monthlyProducts, setCurrentMonth, setCurrentDay, currentDay,
 
   // 月間データから日付ごとのデータに変換
   const dailyProduct = dailyNutritionCalculations(monthlyProducts);
-  console.log(dailyProduct);
+  console.log("その月の日々の栄養素は", dailyProduct);
 
   // 上の日付データをFullCalendarで使用できるようにする関数
   // 現在は以下の形......

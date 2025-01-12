@@ -1,4 +1,4 @@
-import { Card, CardContent, Grid, Stack, Typography } from '@mui/material';
+import { Button, Card, CardActions, CardContent, Grid, Stack, Typography } from '@mui/material';
 import React from 'react';
 import fontWeightBold from '../theme/theme';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
@@ -7,24 +7,40 @@ import AppleIcon from '@mui/icons-material/Apple';
 import AndroidIcon from '@mui/icons-material/Android';
 import AnimationIcon from '@mui/icons-material/Animation';
 import BatteryCharging50Icon from '@mui/icons-material/BatteryCharging50';
-import { Product } from '../types';
+import { Product, User } from '../types';
 import { nutritionCalculations } from '../utils/nutritionCalculations';
 
 // プロップスで受け取るデータを型定義
 interface MonthlyDataProps {
   monthlyProducts: Product[];   // App.tsx -> Home.tsxからの受け取り
+	users: User[]; // App.tsx->Home.tsxから受け取り
 }
 
 
 // コンポーネント 
-const MonthlyData = ({monthlyProducts}: MonthlyDataProps) => {
+const MonthlyData = ({monthlyProducts, users}: MonthlyDataProps) => {
   // 月々の栄養素を計算する関数をutils/nutritionCalculations.tsから持ってきて、今月分のデータを入れて計算し、分割代入している。
   const {totalEnergy, totalProtein, totalFat, totalCarbo, totalSalt, totalCalcium} = nutritionCalculations(monthlyProducts);
-  console.log(monthlyProducts);
-
+  console.log("monthlyProductsは", monthlyProducts);
 
 	return (
     <>
+		{/* ユーザーデータを表示 */}
+		<Card sx={{ minWidth: 275, mb: 2 }}>
+			{users.map((user) => (
+				<CardContent key={user.id}>
+					<Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 20 }}>
+						name: {user.name}
+					</Typography>
+					<Typography sx={{ color: 'text.secondary', mb: 1.5 }}>weight: {user.weight}</Typography>
+					<Typography sx={{ color: 'text.secondary'}}>height: {user.height}</Typography>
+					<CardActions>
+						<Button>編集する</Button>
+					</CardActions>
+				</CardContent>
+			))}
+    </Card>
+		{/* 月間栄養素を表示 */}
 		<Grid container spacing={{xs: 1, sm: 2}} marginBottom={{xs: 1, sm: 2}}>
       {/* それぞれのグリッドアイテム */}
       {/* 月間エネルギー */}

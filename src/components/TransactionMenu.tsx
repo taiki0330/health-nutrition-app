@@ -75,7 +75,7 @@ const TransactionMenu = ({currentDay, dailyProducts, handleTransactionForm, onSe
             <Stack spacing={2}>
               {/* 取引データ */}
               {dailyProducts.map((product) => (
-              <ListItem disablePadding>
+              <ListItem disablePadding key={product.id}>
                 <Card
                   sx={{
                     width: "100%",

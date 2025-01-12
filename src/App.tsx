@@ -7,8 +7,8 @@ import AppLayout from './components/layout/AppLayout'
 import { ThemeProvider } from '@emotion/react'
 import { theme } from './theme/theme'
 import { CssBaseline } from '@mui/material'
-import { Product } from './types'
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import { Product, User } from './types'
+import { addDoc, collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { db } from './firebase'
 import { formatMonth } from './utils/formatting'
 import { Schema } from './validations/schema'
@@ -26,7 +26,37 @@ function App() {
   // アプリではすべての月のデータから今月分だけを取り出すので、stateで管理する
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  // ユーザー情報をstateで管理
+  const [users, setUsers] = useState<User[]>([]);
 
+
+  // ユーザーデータをfirestoreから取得する処理
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Query a reference to a subcollection
+        const querySnapshot = await getDocs(collection(db, "Users"));
+        // データを{...}ではなく、[{...},]の形にする
+        const usersData = querySnapshot.docs.map((doc) => {
+          return {
+            ...doc.data(),
+            id: doc.id,
+          } as User;
+        })
+        console.log("userDataは", usersData);
+        setUsers(usersData);
+      } catch (error) {
+        // error
+        if(isFireStoreError(error)) {
+          console.error("Firestoreのエラーは", error);
+        } else {
+          console.error("一般的なエラーは", error)
+        }
+      }
+    }
+    fetchUsers();
+  }, [])
+  // console.log(users);
 
   // データは初回レンダリング時一回のみ取得したいのでuseEffect()を利用する
   useEffect(() => {
@@ -54,8 +84,7 @@ function App() {
     }
     fetchProducts();
   }, []);
-
-  console.log(products);
+  // console.log(products);
 
 
   // productsの中から今月のデータのみを抽出する。utils/formatting.tsで作成したフォーマット関数を使う
@@ -87,6 +116,55 @@ function App() {
     }
   }
 
+  // firestoreからデータを削除->TransactionForm.tsxまで渡す
+  const handleDeleteProduct = async(productId: string) => {
+    try {
+      // firestoreからデータを削除
+      await deleteDoc(doc(db, "Products", productId));
+      // リロードせずに画面に反映->stateで管理しているproductsをフィルタリングする
+      const filteredProducts = products.filter((product) => {
+        return product.id !== productId;
+      })
+      setProducts(filteredProducts);
+    } catch (error) {
+      // error
+      if(isFireStoreError(error)) {
+        console.error("Firestoreのエラーは", error);
+      } else {
+        console.error("一般的なエラーは", error)
+      }
+    }
+  }
+
+  // firestoreで更新処理
+  const handleUpdateProduct = async(product: Schema, productId: string) => {
+    try {
+      // firestore更新処理
+      const docRef = doc(db, "Products", productId);
+      // Set the "capital" field of the city 'DC'
+      await updateDoc(docRef, product);
+      // リロードせずに画面に反映させる->stateで管理しているproductsからmap関数で
+      const updatedProducts = products.map((p) => {
+        return p.id === productId ? {...p, ...product} : p;
+      })
+      // 上記のコードは以下のように説明
+      // 更新前
+      // let p = {id: 1, date: "2025-1-1", amount: 300}
+      // 更新後
+      // let product = {date: "2025-1-1", amount: 400}
+      // 合体
+      // {id: 1, date: "2025-1-1", amount: 400}
+      setProducts(updatedProducts);
+    } catch (error) {
+      // error
+      if(isFireStoreError(error)) {
+        console.error("Firestoreのエラーは", error);
+      } else {
+        console.error("一般的なエラーは", error)
+      }
+    }
+  }
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -99,6 +177,9 @@ function App() {
               monthlyProducts={monthlyProducts}
               setCurrentMonth={setCurrentMonth}
               onSaveProduct={handleSaveProduct}
+              onDeleteProduct={handleDeleteProduct}
+              onUpdateProduct={handleUpdateProduct}
+              users={users}
             />}/>
             <Route path='*' element={<NoMatch />}/>
           </Route>

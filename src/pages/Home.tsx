@@ -4,7 +4,7 @@ import MonthlyData from '../components/MonthlyData'
 import Calendar from '../components/Calendar'
 import TransactionMenu from '../components/TransactionMenu'
 import TransactionForm from '../components/TransactionForm'
-import { Product } from '../types'
+import { Product, User } from '../types'
 import { format } from 'date-fns'
 import { Schema } from '../validations/schema'
 
@@ -13,10 +13,13 @@ interface HomeProps {
   monthlyProducts: Product[],  // App.tsxからの受け取り
   setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>, // App.tsxから受け取り
   onSaveProduct: (product: Schema) => Promise<void>, // App.tsxから受け取り
+  onDeleteProduct: (productId: string) => Promise<void>, // App.tsxから受け取り
+  onUpdateProduct:  (product: Schema, productId: string) => Promise<void>, // App.tsxから受け取り
+  users: User[], // App.tsxから受け取り
 }
 
 // コンポーネント
-const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
+const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct, onDeleteProduct, onUpdateProduct, users}: HomeProps) => {
 
   // 現在の日付をstateで管理
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -32,8 +35,8 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
   const dailyProducts = monthlyProducts.filter((product) => {
     return product.date === currentDay;
   })
-  console.log(dailyProducts);
-  console.log(currentDay);
+  console.log("選択した日付のProductsは", dailyProducts);
+  console.log("currentDayは", currentDay);
 
   // ×ボタンでフォームを閉じる処理
   const closeForm = () => {
@@ -64,7 +67,7 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
       {/* 左側に表示するコンテンツ */}
       <Box sx={{flexGrow: 1}}>
         {/* 上部に表示する部分 */}
-        <MonthlyData monthlyProducts={monthlyProducts}/>
+        <MonthlyData monthlyProducts={monthlyProducts} users={users}/>
         {/* 下部に表示する部分 */}
         <Calendar 
           monthlyProducts={monthlyProducts}
@@ -92,6 +95,9 @@ const Home = ({monthlyProducts, setCurrentMonth, onSaveProduct}: HomeProps) => {
           currentDay={currentDay}
           onSaveProduct={onSaveProduct}
           selectedProduct={selectedProduct}
+          onDeleteProduct={onDeleteProduct}
+          setSelectedProduct={setSelectedProduct}
+          onUpdateProduct={onUpdateProduct}
         />
     </Box>
 
